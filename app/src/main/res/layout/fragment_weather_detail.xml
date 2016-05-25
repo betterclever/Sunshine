@@ -8,6 +8,10 @@
                 android:paddingTop="@dimen/activity_vertical_margin"
                 tools:context="com.android.example.sunshine.app.WeatherDetailActivityFragment"
                 tools:showIn="@layout/activity_weather_detail">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvdetail"/>
 
 
 </RelativeLayout>

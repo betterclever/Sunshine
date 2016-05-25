@@ -1,9 +1,13 @@
 package com.android.example.sunshine.app;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -50,12 +54,27 @@ import java.util.ArrayList;
 public class MainActivityFragment extends Fragment {
 
 	RequestQueue rq;
-	String weatherURL = "http://api.openweathermap.org/data/2.5/forecast/daily?q=Panipat&mode=json&units=metric&cnt=7&appid=c7497c25dd8765dee1c72d4894b12198";
+	//String weatherURL = "http://api.openweathermap.org/data/2.5/forecast/daily?q=Panipat&mode=json&units=metric&cnt=7&appid=c7497c25dd8765dee1c72d4894b12198";
 	public MainActivityFragment() {
 	}
 
 	private ArrayAdapter<String> mAdapter = null;
 
+
+	private void updateWeather(){
+
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		String loc =  preferences.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+		//Log.d("Location",loc);
+
+		FetchWeatherTask weatherTask = new FetchWeatherTask();
+		weatherTask.execute(loc);
+	}
+	@Override
+	public void onStart(){
+		super.onStart();
+		updateWeather();
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState){
@@ -69,10 +88,10 @@ public class MainActivityFragment extends Fragment {
 	}
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item){
+
 		int id = item.getItemId();
 		if(id == R.id.action_refresh){
-			FetchWeatherTask weatherTask = new FetchWeatherTask();
-			weatherTask.execute("94043");
+			updateWeather();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -80,7 +99,7 @@ public class MainActivityFragment extends Fragment {
 
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+	public View onCreateView(final LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState) {
 		View rootView =  inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -88,19 +107,6 @@ public class MainActivityFragment extends Fragment {
 
 		final ArrayList<String> fakeData = new ArrayList<String>();
 		{
-			fakeData.add("Panipat 32");
-			fakeData.add("Panipat 32");
-			fakeData.add("Panipat 32");
-			fakeData.add("Panipat 32");
-			fakeData.add("Panipat 32");
-			fakeData.add("Panipat 32");
-			fakeData.add("Panipat 32");
-			fakeData.add("Panipat 32");
-			fakeData.add("Panipat 32");
-			fakeData.add("Panipat 32");
-			fakeData.add("Panipat 32");
-			fakeData.add("Panipat 32");
-			fakeData.add("Panipat 32");
 			fakeData.add("Panipat 32");
 			fakeData.add("Panipat 32");
 			fakeData.add("Panipat 32");
@@ -130,6 +136,10 @@ public class MainActivityFragment extends Fragment {
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				String a = (String) parent.getItemAtPosition(position);
 				Toast.makeText(getContext(),a,Toast.LENGTH_LONG).show();
+
+				Intent intent = new Intent(getContext(),WeatherDetailActivity.class);
+				intent.putExtra(Intent.EXTRA_TEXT,a);
+				startActivity(intent);
 			}
 		});
 
@@ -247,12 +257,14 @@ public class MainActivityFragment extends Fragment {
 				final String FORMAT_PARAM = "mode";
 				final String UNITS_PARAM = "units";
 				final String DAYS_PARAM = "cnt";
+				final String API_KEY = "APPID";
 
 				Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
 					.appendQueryParameter(QUERY_PARAM,params[0])
 					.appendQueryParameter(FORMAT_PARAM,format)
 					.appendQueryParameter(UNITS_PARAM,units)
 					.appendQueryParameter(DAYS_PARAM,Integer.toString(numDays))
+					.appendQueryParameter(API_KEY,"c7497c25dd8765dee1c72d4894b12198")
 					.build();
 
 				URL url = new URL(builtUri.toString());
@@ -263,9 +275,6 @@ public class MainActivityFragment extends Fragment {
 				// Construct the URL for the OpenWeatherMap query
 				// Possible parameters are avaiable at OWM's forecast API page, at
 				// http://openweathermap.org/API#forecast
-				String baseUrl = "http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7";
-				String apiKey = "&APPID=" + "c7497c25dd8765dee1c72d4894b12198";
-				URL newurl = new URL(baseUrl.concat(apiKey));
 
 				// Create the request to OpenWeatherMap, and open the connection
 				urlConnection = (HttpURLConnection) url.openConnection();
